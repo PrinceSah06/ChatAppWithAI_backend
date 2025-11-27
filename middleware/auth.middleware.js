@@ -10,20 +10,15 @@ import readisClient from '../services/radis.servies.js';
 
 export const authUser = async (req, res, next) => {
   let token;
-  console.log('jwtsecret is :',process.env.JWT_SECRATE)
 
   // Try to get token from cookie
   if (req.cookies && req.cookies.token) {
     token = req.cookies.token;
-    console.log('inside cookie token:', token);
   } 
   // Else, try to get token from Authorization header
-  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1]; // Extract token part after "Bearer "
-    console.log('inside header token:', token);
   }
-
-  // If no token found, return unauthorized
   if (!token) {
     return res.status(401).send({ err: "please authenticate", error: { message: "jwt must be provided" } });
   }
@@ -39,8 +34,9 @@ export const authUser = async (req, res, next) => {
   }
   try {
     // Verify token with secret
-    const decoded = jwt.verify(token, process.env.JWT_SECRATE); // ensure JWT_SECRET is set correctly in your env
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // ensure JWT_SECRET is set correctly in your env
     req.user = decoded; // attach decoded token payload to request for downstream use
+    console.log('this User is authrised')
     next(); // pass control to next middleware/controller
   } 
   catch (error)

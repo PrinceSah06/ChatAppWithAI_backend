@@ -7,10 +7,10 @@ const projectSchema = new mongoose.Schema({
         required:true,
         trim:true,
         unique:[true,'Project name must be uniqe']
-    },users:{
+    },users:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'user'
-    }
+    }]
 });
 
 

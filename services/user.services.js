@@ -12,3 +12,12 @@ export const createUser=async ({email,password})=>{
        await user.save()
        return user
 }
+
+export const getAllUser  = async ({userId})=>{
+    console.log('inside get-all-user ')
+    const users = await User.find({_id:{$ne : userId}})
+
+
+    
+ return users
+}

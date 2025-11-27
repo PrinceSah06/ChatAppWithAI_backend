@@ -5,6 +5,7 @@ import connect from './Db/Db.js';
 import   userRoutes from './routes/user.routes.js'
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
+import aiRoutes from './routes/ai.route.js'
 import projectRoutes from './routes/project.routes.js'
 connect()
 
@@ -19,3 +20,4 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 app.use('/user',userRoutes)
 app.use("/projects",projectRoutes)
+app.use("/ai",aiRoutes)
