@@ -14,7 +14,7 @@ router.post('/register',
 router.post('/login',
     body('email').isEmail().withMessage('Email must be a valid email address'),
         body('password').isLength({min:4}).withMessage('password mist be a at least 4 charactor')
-,authUser,userConstroler.loginControler);
+,userConstroler.loginControler);
 
 router.get('/login/profile',authUser,userConstroler.profileControler)
 

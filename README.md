@@ -1,39 +1,38 @@
-﻿# ChatAppWithAI_backend
+# ChatAppWithAI - Backend
 
-ChatAppWithAI backend project focused on Chat with a stack that includes Chat, Express, Google Gemini, MongoDB.
+The backend server for the ChatAppWithAI workspace, providing real-time collaboration, database management, and AI integration.
+
+## Features
+- **User Authentication**: Secure JWT-based login and registration.
+- **Projects**: Create and manage isolated workspaces.
+- **Real-Time Websockets**: Broadcast code changes and messages to collaborators instantly using Socket.io.
+- **AI Integration**: Connects to the Google Gemini API to generate intelligent coding responses formatted in JSON.
+- **Redis Caching**: Efficient session and state management.
 
 ## Tech Stack
-
-- Chat
-- Express
-- Google Gemini
-- MongoDB
-- Redis
-- Socket.IO
-
-## Project Structure
-
-- `constolers/`
-- `Db/`
-- `middleware/`
-- `models/`
-- `routes/`
-- `services/`
-
-## Packages And Scripts
-
-- `backend` at `ChatAppWithAI_backend`
-  Available scripts: start, test.
+- Node.js & Express
+- MongoDB (Mongoose)
+- Redis (ioredis)
+- Socket.io
+- @google/genai (Gemini 2.5 Flash)
 
 ## Getting Started
 
-1. Install dependencies in the package you want to run.
-2. Create a local `.env` from any generated `.env.example` file.
-3. Run the main development script for that package.
+1. Install dependencies:
+   \`\`\`bash
+   npm install
+   \`\`\`
 
-## Maintenance Notes
+2. Create a \`.env\` file:
+   \`\`\`
+   PORT=4000
+   MONGODB_URI=mongodb://localhost:27017/chatappwithai
+   JWT_SECRET=your_jwt_secret
+   REDIS_URI=your_redis_uri
+   GOOGLE_AI_KEY=your_gemini_api_key
+   \`\`\`
 
-- Generated folders such as `node_modules/`, `dist/`, and `.next/` should stay untracked.
-- Secrets should stay in local `.env` files and never be committed.
-- Update this README when the project purpose or setup changes.
-
+3. Start the server (with auto-reload):
+   \`\`\`bash
+   npm start
+   \`\`\`

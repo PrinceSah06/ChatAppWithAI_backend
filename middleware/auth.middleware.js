@@ -23,9 +23,7 @@ export const authUser = async (req, res, next) => {
     return res.status(401).send({ err: "please authenticate", error: { message: "jwt must be provided" } });
   }
 
-  console.log('token :' ,token)
   const isBlacklisted = await readisClient.get(token)
-  console.log(isBlacklisted)
   
 
   if(isBlacklisted){
@@ -36,7 +34,6 @@ export const authUser = async (req, res, next) => {
     // Verify token with secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET); // ensure JWT_SECRET is set correctly in your env
     req.user = decoded; // attach decoded token payload to request for downstream use
-    console.log('this User is authrised')
     next(); // pass control to next middleware/controller
   } 
   catch (error)

@@ -1,18 +1,13 @@
-import Radis, { Redis } from 'ioredis'
-import dotenv from 'dotenv'
+import Redis from 'ioredis';
 
-dotenv.config()
+const redisClient = new Redis(process.env.REDIS_URI);
 
-const readisClient = new Radis({
-    host :process.env.REDIS_HOST,
-    port:process.env.REDIS_PORT,
-    password:process.env.REDIS_PASSWORD
+redisClient.on('connect', () => {
+    console.log('Redis connected successfully');
 });
 
-
-
-readisClient.on('connect',()=>{
-    console.log('Readis connected');
+redisClient.on('error', (err) => {
+    console.error('Redis connection error:', err);
 });
 
-export default  readisClient
+export default redisClient;

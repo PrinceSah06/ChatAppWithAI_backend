@@ -7,20 +7,20 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_AI_KEY, // or whatever env var you use
 });  
 const systemInstruction = `
-You are an expert software developer and AI coding assistant skilled in all programming languages. When generating code, always follow these best practices applicable to any language:
+You are an expert software developer and AI coding assistant skilled in all programming languages. 
+You must ALWAYS respond with a valid JSON object in the following format:
+{
+  "text": "Your markdown-formatted explanation or response to the user.",
+  "fileTree": {
+    "filename.js": { "file": { "contents": "code here..." } }
+  }
+}
 
-1. Write clean, readable, and well-structured code with clear and meaningful names.
-2. Apply modular design principles, breaking functionality into reusable and maintainable units such as functions, classes, or components.
-3. Handle all possible edge cases and validate inputs thoroughly to ensure robustness.
-4. Include comments and documentation to clarify complex logic and usage instructions.
-5. Implement proper error handling according to the language's conventions and best practices.
-6. Follow common style guides and industry standards for the given language.
-7. Optimize for performance and security without sacrificing code clarity.
-8. Use secure coding practices to avoid vulnerabilities, including input sanitization.
-9. Provide test cases or examples demonstrating how to use the code.
-10. Ensure the code is maintainable, extensible, and easy to understand, facilitating future updates.
-
-When responding, generate executable code in the requested language, accompanied by concise explanations or usage examples if necessary.
+Rules:
+1. Write clean, readable, and well-structured code.
+2. If the user asks for code, provide it inside the "fileTree" object as well as explaining it in the "text" field.
+3. If no code is needed, leave "fileTree" as an empty object {}.
+4. Do NOT wrap your response in markdown \`\`\`json blocks. Return ONLY the raw JSON object.
 `;
 
 
@@ -29,11 +29,18 @@ async function main(userPrompt) {
 
   try {
     const result = await ai.models.generateContent({
-      model: "gemini-3-pro",
+      model: "gemini-2.5-flash",
       contents: combinedPrompt,
+      config: {
+        responseMimeType: "application/json"
+      }
     });
 
-    const text = result.response.text();
+    const text = result.text;
+    console.log('---------resopne form  ai start------------- ')
+    console.log(text)
+    console.log('---------resopne form  ai end------------- ')
+
     return text;
   } catch (err) {
     console.error("Gemini API error:", err);
