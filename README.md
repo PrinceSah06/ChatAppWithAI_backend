@@ -1,65 +1,50 @@
-# 🧠 Collaborative AI-Agent Chat & IDE Backend
+# 🧠 Collaborative AI-Agent Chat & IDE Workspace
 
-A highly scalable Express server designed as the orchestrator for a multi-user collaborative workspace and cloud-based IDE. It integrates **Socket.IO** for real-time synchronization, **Redis** for token-blacklisting, **MongoDB** for workspace storage, and **Google Gemini API** (`gemini-2.5-flash`) for AI agent assistance.
+[![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express)](https://expressjs.com/)
+[![React](https://img.shields.io/badge/React-19.x-61DAFB?style=flat-square&logo=react)](https://react.dev/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socket.io)](https://socket.io/)
+[![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?style=flat-square&logo=redis)](https://redis.io/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
+[![Gemini](https://img.shields.io/badge/Gemini--3.5--Flash-AI-blue?style=flat-square&logo=google-gemini)](https://ai.google.dev/)
 
-This repository serves as a showcase of backend systems engineering, featuring secure room-based WebSockets, AI model structuring, stateless validation, and token revocation patterns.
+A production-ready full-stack orchestrator for a multi-user collaborative workspace and cloud-based IDE. It integrates **Socket.IO** for real-time synchronization, **Redis** for stateful token blacklisting, **MongoDB** for workspace storage, and **Google Gemini 3.5 Flash** for in-context AI-agent assistance. 
 
----
-
-## 🚀 Key Architectural Features & Design Patterns
-
-1. **Room-Based Socket.IO Synchronization**
-   - Implements room isolation using MongoDB Project IDs: clients connecting to the socket are authenticated via JWT, verified against database collaborators, and placed into a dedicated project room (`socket.join(projectId)`).
-   - Broadcasts real-time messages and file tree edits strictly within the project namespace, protecting workspace privacy.
-
-2. **Google Gemini AI Agent Integration (`@google/genai`)**
-   - Listens for messages containing the `@ai` tag. Triggers the Google Gemini SDK (`gemini-2.5-flash`) to generate software engineering suggestions.
-   - **JSON Mode System Prompt**: Enforces the AI to respond in a strict JSON format containing both markdown explanations (`text`) and code structure payloads (`fileTree`), which are automatically parsed and mounted on the client-side sandbox.
-   - Built-in error wrappers gracefully catch API quotas/limit limits (returning a structured `429` JSON notification to the frontend).
-
-3. **Stateless JWT Security & Redis Blacklisting**
-   - **Double Protection**: JWT validates client identity state, while **Redis** manages revocation state.
-   - **Token Invalidation**: To logout immediately in a stateless architecture, the token is added to a Redis memory cache with a 24-hour Time-to-Live (TTL). The `authUser` middleware queries Redis first before evaluating JWT validity, denying access to blacklisted tokens.
-
-4. **Input Verification (Express Validator)**
-   - Utilizes declarative validation chains (e.g. `body('email').isEmail()`) to sanitize and reject invalid HTTP request payloads before they hit the controller level.
-
-5. **MongoDB/Mongoose Schemas**
-   - **User Schema**: Secure pre-save bcrypt hashing hooks and instance methods for checking passwords (`isValidPassword`) and generating JWT signatures (`generateJWT`).
-   - **Project Schema**: Defines relational structures associating projects to array fields of collaborator user IDs.
+The frontend leverages **WebContainers (`@webcontainer/api`)** to run and execute full node environments directly inside the browser sandbox, synchronized in real-time with collaborators.
 
 ---
 
-## 📁 Repository Directory Structure
+## 🚀 Key Engineering & Architecture Achievements
 
-```text
-ChatAppWithAI_backend/
-├── .env.example             # Example environment variable keys
-├── .gitignore               # git exclude rules
-├── app.js                   # Express application setup and REST endpoint declarations
-├── server.js                # HTTP server launcher and Socket.IO connection handlers
-├── package.json             # Scripts & backend dependencies manifest
-├── demo.env                 # Dummy config template for fast testing
-├── Db/
-│   └── Db.js                # Database connection helper (Mongoose)
-├── constolers/              # Express API handlers
-│   ├── ai.contoller.js      # Direct AI prompt endpoints handler
-│   ├── project.controler.js # Project CRUD and collaborator handlers
-│   └── user.controler.js    # User registration, login, profile, and logout handlers
-├── middleware/
-│   └── auth.middleware.ts   # Express request protector & Redis blacklist evaluator
-├── models/
-│   ├── projec.model.js      # Project workspace schema definition
-│   └── user.models.js       # User credentials schema definition
-├── routes/
-│   ├── ai.route.js          # Router for AI operations
-│   ├── project.routes.js    # Router for Workspace actions
-│   └── user.routes.js       # Router for Authentication operations
-└── services/
-    ├── ai.service.js        # Gemini API integration wrapper
-    ├── project.service.js   # DB actions for Project updates and user additions
-    ├── radis.servies.js     # Redis/Valkey cache initialization client
-    └── user.services.js     # DB actions for User creation and lookups
+* **Isolated Collaboration Workspaces:** Engineered a room-based websocket architecture using Node.js, Express, and Socket.IO, isolating multi-user workspaces into dedicated channels with zero cross-room socket pollution.
+* **Dual-Layer Session Security:** Designed a security scheme combining stateless JWT validation with high-performance **Redis/Valkey cache** token invalidation, achieving O(1) instantaneous session revocation on user logout.
+* **Structured AI Code-Generation:** Integrated Google Gemini 3.5 Flash API using `@google/genai`, enforcing strict JSON schema constraints for structured code-generation outputs that automatically map into virtual sandbox environments.
+* **Optimal Relationship Modeling:** Optimized database schema design with Mongoose/MongoDB, building relationship maps for project collaborators and utilizing query indexes to facilitate sub-second collaborator search and indexing.
+* **In-Browser Code Execution:** Built a real-time collaborative development platform integrating a React 19 frontend with an Express and Socket.IO backend to synchronize workspaces, file trees, and chat logs across active users.
+* **Client-Side Virtual Sandboxing:** Integrated **WebContainer API**, enabling developers to boot local node environments, install dependencies, and run full-stack servers directly in the browser sandbox.
+
+---
+
+## 🗺️ System Architecture & Workflow
+
+The diagram below details the end-to-end flow of requests, websocket connections, and the integration of Redis and Gemini AI services:
+
+```mermaid
+graph TD
+    Client[React Frontend] -->|1. HTTP Login/Register| AuthAPI[Express Auth Controller]
+    AuthAPI -->|2. Generate JWT| Client
+    Client -->|3. WS Handshake + JWT| SocketServer[Socket.IO Server]
+    
+    subgraph Middlewares & Verification
+        SocketServer -->|4. Authenticate & Check Project| DB[(MongoDB)]
+        SocketServer -->|5. Join Room| Room[Project Room Isolation]
+    end
+
+    Client -->|6. Send msg @ai| SocketServer
+    SocketServer -->|7. Check Token Blacklist| Redis[(Redis Cache)]
+    SocketServer -->|8. Fetch AI Output| GeminiService[Gemini 3.5 Flash API]
+    GeminiService -->|9. Returns Structured JSON| SocketServer
+    SocketServer -->|10. Broadcast code updates| Room
+    Room -->|11. Mount to Sandbox| Client
 ```
 
 ---
@@ -87,7 +72,26 @@ ChatAppWithAI_backend/
 
 ---
 
-## 🔧 Getting Started
+## 💡 Deep-Dive: Architectural & Engineering Decisions
+
+### 1. Cross-Project Socket Room Isolation
+When a user connects, we extract the `projectId` from the handshake query and check if it matches a project they are authorized to collaborate on in the database. If authorized, they are joined into a specific socket room named after the Project's MongoDB ID: `socket.roomId = socket.project._id.toString()`. All events are broadcasted strictly using `socket.broadcast.to(socket.roomId).emit(...)`, shielding other rooms.
+
+### 2. Structured JSON Output Constraints
+We configure the request options inside `ai.models.generateContent` with: `responseMimeType: "application/json"`. Simultaneously, the system prompt contains strict JSON schema guidelines. By utilizing the native JSON output mode of Gemini, the api returns a machine-readable JSON structure, eliminating regex-based parsing hacks and failures on the client.
+
+### 3. Stateless JWT Invalidation via Redis
+Since JWTs are stateless, they remain valid until expired. If a token is compromised, simple client-side deletion isn't enough. We solve this by adding the token to a Redis cache upon user logout. The Redis key is configured with a Time-To-Live (TTL) equal to the token's remaining validity duration. The `authUser` middleware intercepts every request and runs `redis.get(token)`—if found, it immediately blocks access, invalidating the session.
+
+### 4. Cross-Platform Configuration Adaptability
+We configured client initializations and server bindings to adapt dynamically to deployment environments:
+1. **Dynamic Model Overrides**: The backend defaults to `gemini-3.5-flash` but checks `process.env.GEMINI_MODEL`, allowing model upgrades directly via environmental controls.
+2. **Robust Port & Database bindings**: Checks `process.env.PORT` and `process.env.MONGODB_URI` fallback endpoints, enabling easy hosting.
+3. **Unified API Fallbacks**: The Gemini client loads the API key by prioritizing `GEMINI_API_KEY`, followed by `GOOGLE_AI_KEY` and `GEMINI_KEY`.
+
+---
+
+## 🔧 Getting Started & Deployment
 
 ### Local Development Setup
 
@@ -97,48 +101,26 @@ ChatAppWithAI_backend/
    ```
 
 2. **Configure environment variables**
-   Create a `.env` file using the configuration template:
-   ```bash
-   cp .env.example .env
-   ```
-   Provide the following parameters:
+   Create a `.env` file in the root backend folder:
    ```env
    PORT=4000
    MONGODB_URI=mongodb://localhost:27017/chatappwithai
    JWT_SECRET=your_super_secret_jwt_key
    REDIS_URI=redis://127.0.0.1:6379
-   GOOGLE_AI_KEY=your_gemini_api_key
+   GEMINI_API_KEY=your_gemini_api_key
    ```
 
-3. **Start the Express server (Development mode)**
+3. **Start the Express server**
    ```bash
    npm run dev
    ```
-   The server launches using `nodemon` on port `4000`.
 
----
-
-## 💡 Tech Interview Q&A Cheatsheet (Prep Material)
-
-### Q1: How does the backend prevent cross-project socket pollution?
-- When a user joins a socket room, the backend extracts the `projectId` from the handshake query and checks if it matches a valid database project.
-- The user is placed into a specific socket room: `socket.roomId = socket.project._id.toString()`.
-- Real-time updates and messages are transmitted strictly within that room: `socket.broadcast.to(socket.roomId).emit(...)`. This prevents users in Project A from receiving messages from Project B.
-
-### Q2: How do you force Gemini to return structured JSON instead of standard markdown text?
-- We instruct the model using a strict system instruction detailing the exact schema required:
-  ```json
-  {
-    "text": "markdown explanation",
-    "fileTree": { "filename": { "file": { "contents": "..." } } }
-  }
-  ```
-- In addition, we configure the request options inside `ai.models.generateContent` with: `responseMimeType: "application/json"`. This leverages the model's native JSON output mode to guarantee that the response is a machine-readable JSON structure, minimizing parsing errors.
-
-### Q3: How does Redis invalidation prevent stateless JWT hijacking?
-- A standard JWT is stateless: it remains valid until its expiration time. If a user logs out, they simply delete the token from the client. However, if the token is stolen, it can still be used until it expires.
-- To address this, the logout controller takes the token and caches it in Redis with an `EX` (expiration) timeout equal to the token's remaining lifespan.
-- When any route tries to call `authUser` middleware, it first runs `redis.get(token)`. If the key is found, it immediately returns `401 Unauthorized` without even verifying the signature, effectively blacklisting the token.
+### Render Deployment Steps
+1. Push your changes to GitHub.
+2. Create a new **Web Service** on Render.
+3. Select your repository.
+4. Set the **Start Command** to `node server.js`.
+5. Under environment variables, configure `PORT`, `MONGODB_URI` (MongoDB Atlas link), `REDIS_URI` (Render Redis or RedisLabs), `JWT_SECRET`, and `GEMINI_API_KEY`.
 
 ---
 
