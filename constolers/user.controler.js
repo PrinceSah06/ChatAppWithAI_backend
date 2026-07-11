@@ -52,9 +52,8 @@ export const loginControler = async (req,res)=>{
       
       const {email,password} = req.body;
       const user = await  User.findOne({email}).select('+password')
-      // console.log(user,'inside db ')
       
-      if(!user.email){
+      if(!user){
         return res.status(401).json({message:'user not found in DB'})
       }
  let isMatch;
@@ -66,7 +65,7 @@ export const loginControler = async (req,res)=>{
 
 
       if(!isMatch){
-        return res.send(401).json({
+        return res.status(401).json({
           message:'invalid password or credentionl'
         })
       }
@@ -100,16 +99,22 @@ res.status(200).json({user
 export const logOutContoler = async (req , res)=>{
   console.log('inside logout controler')
   try { 
-    const token = req.cookies.token || req.headers.authorization.split(' ',[1]);
- 
-      const result= await readisClient.set(token,'logout',"EX",60*60*24)
+    let token = req.cookies?.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
 
+    if (token) {
+      await readisClient.set(token, 'logout', "EX", 60*60*24);
+    }
+ 
     res.status(200).json({
       message:'Logged out successfully'
     })
   } catch (error) {
     console.log(error)
     console.log('something went wronge  while logout ')
+    res.status(500).json({ error: 'Internal server error during logout' });
   }
 }
 

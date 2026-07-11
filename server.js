@@ -51,7 +51,7 @@ io.use( async (socket,next)=>{
 io.on('connection',socket =>{
   console.log('user connected to server');
 
-  socket.roomId = socket.handshake._id
+  socket.roomId = socket.project._id.toString()
 
   socket.join(socket.roomId);
 
