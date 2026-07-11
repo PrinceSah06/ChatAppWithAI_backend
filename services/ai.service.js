@@ -3,8 +3,14 @@ config();
 
 import { GoogleGenAI } from "@google/genai";
 
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GEMINI_KEY;
+
+if (!apiKey) {
+  console.warn("Warning: Gemini API key is not defined in environment variables (GEMINI_API_KEY, GOOGLE_AI_KEY, GEMINI_KEY).");
+}
+
 const ai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_AI_KEY, // or whatever env var you use
+  apiKey: apiKey,
 });  
 const systemInstruction = `
 You are an expert software developer and AI coding assistant skilled in all programming languages. 
